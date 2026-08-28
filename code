@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FisioPrescribe — Patologia → Relatório de Exercício</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config={darkMode:'class',theme:{extend:{
+colors:{brand:{50:'#eef7ff',100:'#d9edff',200:'#bce0ff',300:'#8ecdff',400:'#59b0ff',500:'#338fff',600:'#1b6ff5',700:'#1459e1',800:'#1748b6',900:'#19408f'},
+mint:{50:'#effef6',100:'#d9ffe9',200:'#b5fbd5',300:'#7bf3b5',400:'#3ce18c',500:'#14c56c',600:'#09a356',700:'#0b8047',800:'#0d653c',900:'#0c5333'}},
+fontFamily:{sans:['Inter','system-ui','sans-serif']}}}}
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.8/index.css">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+*{font-family:'Inter',system-ui,sans-serif}
+html{scroll-behavior:smooth}
+::-webkit-scrollbar{width:9px}::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(51,143,255,.35);border-radius:9px}
+.glass{backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.fade-in{animation:fadeIn .45s ease both}
+.slide-up{animation:slideUp .6s cubic-bezier(.16,1,.3,1) both}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{animation:spin 1s linear infinite}
+.pulse-dot{animation:pulseDot 2s infinite}
+@keyframes pulseDot{0%,100%{opacity:1}50%{opacity:.35}}
+.blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.3;pointer-events:none}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:1.5rem;transition:transform .3s,box-shadow .3s}
+.card:hover{transform:translateY(-3px);box-shadow:0 18px 36px -14px rgba(0,0,0,.14)}
+.dark .card{background:#0f172a;border-color:#1e293b}
+.tab-btn{display:inline-flex;align-items:center;gap:.5rem;padding:.65rem 1rem;border-radius:.8rem;font-weight:600;font-size:.85rem;white-space:nowrap;border:1px solid #e2e8f0;background:#fff;color:#475569;transition:all .25s;cursor:pointer}
+.tab-btn:hover{border-color:#338fff;color:#1b6ff5}
+.tab-btn.on{background:linear-gradient(135deg,#1b6ff5,#338fff);color:#fff;border-color:transparent;box-shadow:0 8px 22px -8px rgba(27,111,245,.55)}
+.dark .tab-btn{background:#0f172a;border-color:#1e293b;color:#94a3b8}
+.dark .tab-btn.on{color:#fff}
+.chip{padding:.4rem .95rem;border-radius:9999px;font-size:.8rem;font-weight:500;background:rgba(148,163,184,.12);border:1px solid rgba(148,163,184,.28);cursor:pointer;transition:all .2s}
+.chip:hover{background:rgba(51,143,255,.14);border-color:rgba(51,143,255,.45);color:#1b6ff5;transform:translateY(-1px)}
+.btn-p{display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1.2rem;border-radius:.8rem;background:linear-gradient(135deg,#1b6ff5,#338fff);color:#fff;font-weight:600;font-size:.85rem;transition:all .2s;cursor:pointer;border:none}
+.btn-p:hover{box-shadow:0 10px 24px -8px rgba(27,111,245,.55)}
+.btn-p:active{transform:scale(.96)}
+.btn-g{display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1.2rem;border-radius:.8rem;background:#fff;border:1px solid #e2e8f0;font-weight:600;font-size:.85rem;transition:all .2s;cursor:pointer}
+.btn-g:hover{background:#f8fafc}
+.btn-g:active{transform:scale(.96)}
+.dark .btn-g{background:#0f172a;border-color:#1e293b;color:#e2e8f0}
+.dark .btn-g:hover{background:#1e293b}
+.sug{padding:.7rem 1rem;cursor:pointer;display:flex;align-items:center;gap:.6rem;font-size:.9rem}
+.sug:hover{background:rgba(51,143,255,.1)}
+.badge{display:inline-flex;align-items:center;gap:.35rem;padding:.25rem .7rem;border-radius:9999px;font-size:.7rem;font-weight:600}
+.b-blue{background:rgba(51,143,255,.12);color:#1b6ff5;border:1px solid rgba(51,143,255,.3)}
+.b-green{background:rgba(20,197,108,.12);color:#09a356;border:1px solid rgba(20,197,108,.3)}
+.b-amber{background:rgba(245,158,11,.12);color:#b45309;border:1px solid rgba(245,158,11,.3)}
+.b-red{background:rgba(239,68,68,.12);color:#dc2626;border:1px solid rgba(239,68,68,.3)}
+.dark .b-blue{color:#8ecdff}.dark .b-green{color:#7bf3b5}.dark .b-amber{color:#fcd34d}.dark .b-red{color:#fca5a5}
+.risk-fill{transition:width 1.1s cubic-bezier(.16,1,.3,1)}
+input:focus{outline:none}
+@media print{
+ body *{visibility:hidden}
+ .print-area,.print-area *{visibility:visible}
+ .print-area{position:absolute;inset:0;box-shadow:none!important;border:none!important}
+}
+</style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors min-h-screen">
+
+<div class="fixed inset-0 overflow-hidden pointer-events-none">
+  <div class="blob w-96 h-96 bg-brand-500" style="top:-10%;left:-6%"></div>
+  <div class="blob w-80 h-80 bg-mint-500" style="top:42%;right:-10%"></div>
+  <div class="blob w-72 h-72 bg-purple-500" style="bottom:-6%;left:32%"></div>
+</div>
+
+<header class="fixed top-0 left-0 right-0 z-50 glass bg-white/70 dark:bg-slate-950/70 border-b border-slate-200/60 dark:border-slate-800/60">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-lg shadow-brand-500/30">
+        <i data-lucide="activity" class="w-5 h-5 text-white"></i>
+      </div>
+      <div>
+        <h1 class="font-bold text-lg leading-tight">FisioPrescribe</h1>
+        <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">Patologia → Relatório completo</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="hidden md:inline-flex badge b-green"><span class="w-1.5 h-1.5 rounded-full bg-mint-500 pulse-dot"></span>NIH · RxNorm online</span>
+      <button id="themeToggle" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" title="Tema">
+        <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+        <i data-lucide="moon" class="w-5 h-5 dark:hidden"></i>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="relative z-10 pt-24 pb-16 px-4 sm:px-6 max-w-6xl mx-auto">
+
+  <section class="grid lg:grid-cols-2 gap-10 items-center mb-10 slide-up">
+    <div>
+      <div class="inline-flex badge b-green mb-4"><i data-lucide="sparkles" class="w-3.5 h-3.5"></i>Para personal trainers e equipes</div>
+      <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight mb-4">Digite a patologia.<br><span class="bg-gradient-to-r from-brand-500 to-mint-500 bg-clip-text text-transparent">Receba o protocolo.</span></h2>
+      <p class="text-slate-500 dark:text-slate-400 mb-7">O que é, tratamentos possíveis e indicação de exercício físico — com fontes NIH, RxNorm e diretrizes ACSM/OMS.</p>
+
+      <div class="relative">
+        <i data-lucide="search" class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <input id="searchInput" type="text" autocomplete="off" placeholder="Ex: hipertensão, diabetes, osteoartrite, asma..."
+          class="w-full pl-12 pr-28 py-4 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-brand-500 shadow-xl shadow-slate-200/50 dark:shadow-slate-950/50 transition-colors">
+        <button id="searchBtn" class="btn-p absolute right-2 top-1/2 -translate-y-1/2" style="padding:.65rem 1rem">
+          <i data-lucide="stethoscope" class="w-4 h-4"></i><span class="hidden sm:inline">Analisar</span>
+        </button>
+        <div id="suggestions" class="absolute top-full left-0 right-0 mt-2 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden hidden z-30 max-h-72 overflow-y-auto"></div>
+      </div>
+
+      <div class="flex flex-wrap gap-2 mt-4">
+        <button class="chip" data-p="hipertensão">Hipertensão</button>
+        <button class="chip" data-p="diabetes tipo 2">Diabetes T2</button>
+        <button class="chip" data-p="obesidade">Obesidade</button>
+        <button class="chip" data-p="osteoartrite">Osteoartrite</button>
+        <button class="chip" data-p="asma">Asma</button>
+        <button class="chip" data-p="depressão">Depressão</button>
+        <button class="chip" data-p="lombalgia">Lombalgia</button>
+        <button class="chip" data-p="osteoporose">Osteoporose</button>
+      </div>
+    </div>
+    <img src="https://image.qwenlm.ai/public_source/38643cf8-1c3f-45fe-b340-5e25dd043c37/12062d0e9-7f1f-4b67-bb46-da071618ff90.png" alt="Personal trainer analisando relatório com cliente" class="w-full max-w-md mx-auto rounded-3xl shadow-2xl shadow-brand-500/10 hidden lg:block">
+  </section>
+
+  <div id="loading" class="hidden text-center py-16">
+    <div class="inline-flex flex-col items-center gap-4">
+      <div class="relative w-16 h-16">
+        <div class="absolute inset-0 rounded-full border-4 border-brand-200 dark:border-brand-900"></div>
+        <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-brand-500 spinner"></div>
+        <i data-lucide="heart-pulse" class="w-6 h-6 text-brand-500 absolute inset-0 m-auto"></i>
+      </div>
+      <p id="loadingText" class="text-sm text-slate-500 dark:text-slate-400">Consultando bases clínicas...</p>
+    </div>
+  </div>
+
+  <div id="errorBox" class="hidden max-w-2xl mx-auto p-5 rounded-2xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-300 fade-in">
+    <div class="flex gap-3"><i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
+      <div><p class="font-semibold mb-1">Não encontramos essa patologia</p>
+      <p class="text-sm opacity-80">Tente um dos chips rápidos ou outro termo (ex.: "diabetes", "asma").</p></div>
+    </div>
+  </div>
+
+  <div id="results" class="hidden">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+      <div class="flex gap-2 overflow-x-auto pb-1" id="tabsBar">
+        <button class="tab-btn on" data-tab="oquee"><i data-lucide="book-open" class="w-4 h-4"></i>O que é</button>
+        <button class="tab-btn" data-tab="tratamento"><i data-lucide="pill" class="w-4 h-4"></i>Tratamento</button>
+        <button class="tab-btn" data-tab="exercicio"><i data-lucide="dumbbell" class="w-4 h-4"></i>Exercício Físico</button>
+        <button class="tab-btn" data-tab="relatorio"><i data-lucide="file-text" class="w-4 h-4"></i>Relatório Final</button>
+      </div>
+      <button id="newSearch" class="btn-g" style="padding:.5rem .8rem;font-size:.75rem"><i data-lucide="rotate-ccw" class="w-4 h-4"></i>Nova busca</button>
+    </div>
+
+    <div id="tab-oquee" class="tab-content fade-in"></div>
+    <div id="tab-tratamento" class="tab-content hidden fade-in"></div>
+    <div id="tab-exercicio" class="tab-content hidden fade-in"></div>
+    <div id="tab-relatorio" class="tab-content hidden fade-in"></div>
+  </div>
+
+  <div class="mt-12 p-4 rounded-2xl bg-slate-100/80 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex gap-3 items-start">
+    <i data-lucide="info" class="w-5 h-5 text-brand-500 flex-shrink-0 mt-0.5"></i>
+    <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Integra APIs públicas gratuitas: <strong class="text-slate-700 dark:text-slate-300">NIH Clinical Table Search Service</strong> (condições clínicas), <strong class="text-slate-700 dark:text-slate-300">RxNorm REST</strong> (medicamentos) e base própria de diretrizes ACSM/OMS (exercícios). Conteúdo educativo — não substitui avaliação médica.</p>
+  </div>
+</main>
+
+<script>
+const $=s=>document.querySelector(s);
+const norm=s=>(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+const icons=()=>{ if(window.lucide){ lucide.createIcons(); } };
+const fT=(url,ms)=>Promise.race([fetch(url),new Promise((res,rej)=>setTimeout(()=>rej(new Error('timeout')),ms||6000))]);
+let ATUAL=null;
+function findLocal(q){
+  const n=norm(q);
+  if(!n) return null;
+  return DB.find(e=>e.keys.some(k=>n.indexOf(k)!==-1)||norm(e.nome).indexOf(n)!==-1)||null;
+}
+async function run(q){
+  q=(q||'').trim();
+  if(!q) return;
+  document.getElementById('suggestions').classList.add('hidden');
+  document.getElementById('errorBox').classList.add('hidden');
+  document.getElementById('results').classList.add('hidden');
+  document.getElementById('loading').classList.remove('hidden');
+  document.getElementById('loadingText').textContent='Consultando bases clínicas...';
+  window.scrollTo({top:180,behavior:'smooth'});
+  const local=findLocal(q);
+  if(local){ setTimeout(function(){ render(local,false); },350); return; }
+  document.getElementById('loadingText').textContent='Fora da base local — consultando NIH Clinical Tables...';
+  try{
+    const r=await fT('https://clinicaltables.nlm.nih.gov/api/conditions/v3/search?terms='+encodeURIComponent(q)+'&maxList=1',7000);
+    const d=await r.json();
+    let nome=null;
+    if(d && d[3] && d[3][0] && d[3][0][0]) nome=d[3][0][0];
+    if(nome){ render(generic(nome),true); }
+    else{ showErr(); }
+  }catch(err){ showErr(); }
+}
+function showErr(){
+  document.getElementById('loading').classList.add('hidden');
+  document.getElementById('errorBox').classList.remove('hidden');
+}
+function generic(nome){
+  return {keys:[],nome:nome,cid:'—',prev:'Consultar dados epidemiológicos locais',risco:60,rLabel:'Não classificado',rCor:'#f59e0b',
+  rNota:'Condição fora da base detalhada. Exija liberação médica antes de prescrever.',
+  desc:'"'+nome+'" foi identificada na base NIH Clinical Table Search Service, mas não possui protocolo detalhado nesta plataforma. Solicite avaliação e liberação médica do cliente e utilize as diretrizes gerais da OMS abaixo como referência conservadora.',
+  sint:['Consultar quadro clínico individual','Avaliação médica obrigatória','Considerar comorbidades','Histórico medicamentoso','Limitações funcionais individuais'],
+  tratGeral:['Acompanhamento médico regular','Adesão ao tratamento prescrito','Abordagem multiprofissional','Monitorização de sintomas'],
+  meds:[],proto:{vol:'150 min (OMS)',int:'Leve–moderada',freq:'≥ 5 dias'},
+  exer:[{i:'footprints',t:'Aeróbico leve–moderado (após liberação)',f:'5x/sem',d:'30 min',in:'Leve–moderada',n:'Diretriz geral OMS para adultos.'},
+        {i:'dumbbell',t:'Força básica (grandes grupos)',f:'2x/sem',d:'1–2 séries',in:'Leve',n:'Somente com liberação médica.'},
+        {i:'move',t:'Mobilidade e equilíbrio',f:'Diário',d:'10 min',in:'Leve',n:'Seguro e recomendado.'}],
+  contra:['Liberação médica obrigatória antes de iniciar.','Interromper ante qualquer sintoma anormal.','Evitar intensidade alta até classificação de risco.','Trabalho integrado com o médico assistente.']};
+}
+
+const DB=[
+{keys:["hipertens","pressao alta","pressao arterial","has"],nome:"Hipertensão Arterial Sistêmica",cid:"I10",prev:"27,9% dos adultos brasileiros (VIGITEL)",risco:55,rLabel:"Moderado",rCor:"#f59e0b",rNota:"Exercício aeróbico regular reduz a PA em 5–8 mmHg. Atenção a picos pressóricos e hipotensão pós-treino.",
+desc:"Condição crônica caracterizada por pressão arterial sustentada maior ou igual a 140/90 mmHg. É o principal fator de risco modificável para doença cardiovascular, AVC e doença renal. O exercício físico regular é tratamento não farmacológico de primeira linha, com efeito anti-hipertensivo comparável a monoterapia em muitos casos.",
+sint:["Geralmente assintomática","Cefaleia occipital matinal","Tontura e zumbido","Dispneia aos esforços","Fadiga","Sangramento nasal (casos graves)"],
+tratGeral:["Redução de sódio (dieta DASH)","Perda de peso corporal","Controle do estresse e sono","Cessação do tabagismo","Monitorização domiciliar da PA"],
+meds:[{n:"Losartana",g:"losartan",c:"BRA",e:"Bem tolerada; observar hipotensão pós-exercício."},{n:"Enalapril",g:"enalapril",c:"IECA",e:"Resfriamento gradual obrigatório (hipotensão)."},{n:"Atenolol",g:"atenolol",c:"Betabloqueador",e:"Reduz FC máxima — prescrever por percepção de esforço (Borg), não por FC."},{n:"Hidroclorotiazida",g:"hydrochlorothiazide",c:"Diurético",e:"Risco de desidratação, cãibras e hipocalemia. Hidratar e repor eletrólitos."},{n:"Anlodipino",g:"amlodipine",c:"BCC",e:"Vasodilatação — evitar parada abrupta do exercício."}],
+proto:{vol:"150–300 min",int:"Moderada",freq:"5–7 dias"},
+exer:[{i:"footprints",t:"Aeróbico contínuo (caminhada, bike, hidroginástica)",f:"5–7x/sem",d:"30–60 min",in:"Moderada (40–60% VO2res)",n:"Efeito hipotensor pós-exercício dura até 24h — consistência diária é a chave."},{i:"dumbbell",t:"Treino resistido dinâmico",f:"2–3x/sem",d:"8–10 exercícios · 2–3 séries",in:"60–70% 1RM · 12–15 reps",n:"Respiração contínua; proibir manobra de Valsalva."},{i:"hand",t:"Handgrip isométrico",f:"3–4x/sem",d:"4 × 2 min (30% CMV)",in:"Baixa–moderada",n:"Meta-análises mostram redução significativa de PA."},{i:"wind",t:"Respiração diafragmática",f:"Diário",d:"10 min",in:"Leve",n:"Ativação parassimpática; reduz PA aguda."}],
+contra:["PA de repouso acima de 180/110 mmHg: NÃO iniciar — encaminhar ao médico.","PA acima de 160/100: apenas aeróbico leve, sem resistido intenso.","Proibido Valsalva e posições com cabeça abaixo do coração.","Resfriar 5–10 min — risco de hipotensão pós-exercício.","Cuidado redobrado com calor + diuréticos (desidratação)."]},
+
+{keys:["diabetes","diabetic","glicemia","insulina","mellitus","glicem"],nome:"Diabetes Mellitus Tipo 2",cid:"E11",prev:"16,8 milhões de adultos no Brasil (IDF)",risco:45,rLabel:"Moderado",rCor:"#f59e0b",rNota:"Exercício é altamente benéfico; monitorar glicemia pré/pós e sinais de hipoglicemia.",
+desc:"Doença metabólica crônica com hiperglicemia por resistência à insulina e/ou defeito na secreção. O músculo em contração capta glicose independentemente da insulina — por isso o exercício é um dos pilares do tratamento, reduzindo HbA1c de forma comparável a medicamentos de primeira linha.",
+sint:["Sede excessiva e poliúria","Fadiga e visão turva","Cicatrização lenta","Formigamento (neuropatia)","Acantose nigricans","Risco cardiovascular aumentado"],
+tratGeral:["Educação alimentar e contagem de carboidratos","Controle de peso","Automonitorização glicêmica","Cuidados com os pés","Rastreamento de comorbidades"],
+meds:[{n:"Metformina",g:"metformin",c:"Biguanida",e:"Baixo risco de hipoglicemia; exercício seguro."},{n:"Glimepirida",g:"glimepiride",c:"Sulfonilureia",e:"Risco de hipoglicemia no treino — lanche prévio."},{n:"Insulina",g:"insulin",c:"Hormônio",e:"Evitar treino no pico de ação; ajustar local de aplicação."},{n:"Empagliflozina",g:"empagliflozin",c:"iSGLT2",e:"Risco de desidratação/cetoacidose — hidratação reforçada."}],
+proto:{vol:"150–300 min",int:"Moderada",freq:"5–7 dias"},
+exer:[{i:"footprints",t:"Aeróbico (caminhada, bike, natação)",f:"5x/sem",d:"30–60 min",in:"Moderada (Borg 12–13)",n:"Melhora captação de glicose por 24–72h após cada sessão."},{i:"dumbbell",t:"Treino resistido (grandes grupos)",f:"2–3x/sem",d:"8–10 exercícios · 2–3 séries",in:"60–80% 1RM",n:"Massa muscular = principal reservatório de glicose."},{i:"move",t:"Flexibilidade e equilíbrio",f:"2–3x/sem",d:"10–15 min",in:"Leve",n:"Essencial se houver neuropatia periférica."}],
+contra:["Glicemia abaixo de 90 mg/dL: carboidrato antes; acima de 250 com cetose: suspender.","Retinopatia proliferativa ativa: evitar esforço intenso (hemorragia vítrea).","Neuropatia: inspecionar pés; evitar impacto repetitivo.","Ter carboidrato rápido disponível no treino."]},
+
+{keys:["obesidade","obes","sobrepeso","overweight","imc alto"],nome:"Obesidade",cid:"E66",prev:"25,9% dos adultos brasileiros (VIGITEL)",risco:40,rLabel:"Baixo–moderado",rCor:"#84cc16",rNota:"Foco em adesão e progressão gradual; gerenciar impacto articular.",
+desc:"Doença crônica multifatorial com acúmulo excessivo de gordura (IMC maior ou igual a 30 kg/m²) e risco cardiometabólico elevado. O tratamento exige alto volume de exercício aeróbico + treino resistido para preservar massa magra, combinados a mudanças alimentares sustentáveis.",
+sint:["IMC maior ou igual a 30 kg/m²","Dispneia aos esforços","Dores articulares (joelho/lombar)","Apneia do sono","Fadiga e baixa tolerância","Risco metabólico elevado"],
+tratGeral:["Déficit calórico sustentável","Terapia comportamental","Higiene do sono","Acompanhamento multiprofissional","Avaliação de comorbidades"],
+meds:[{n:"Orlistate",g:"orlistat",c:"Inibidor de lipase",e:"Desconforto GI possível — evitar refeição gordurosa pré-treino."},{n:"Liraglutida",g:"liraglutide",c:"GLP-1",e:"Náusea no início; observar tolerância ao esforço."},{n:"Semaglutida",g:"semaglutide",c:"GLP-1",e:"Reforçar resistido + proteína para preservar massa magra."}],
+proto:{vol:"250–300+ min",int:"Moderada progressiva",freq:"5–6 dias"},
+exer:[{i:"footprints",t:"Aeróbico de baixo impacto",f:"5–6x/sem",d:"40–60 min (pode fracionar)",in:"Moderada (RPE 11–13)",n:"Acima de 250 min/sem associa-se a perda clinicamente significativa."},{i:"dumbbell",t:"Resistido progressivo (corpo inteiro)",f:"3x/sem",d:"2–3 séries",in:"70–80% 1RM",n:"Preserva massa magra durante o déficit calórico."},{i:"waves",t:"Exercícios aquáticos",f:"2–3x/sem",d:"30–45 min",in:"Moderada",n:"Reduz carga articular em IMC elevado."},{i:"stretch-horizontal",t:"Mobilidade e funcional",f:"Diário",d:"10–15 min",in:"Leve",n:"Autonomia e adesão de longo prazo."}],
+contra:["Progressão de no máximo 10%/semana para evitar lesões.","Evitar saltos/corrida inicialmente em IMC muito alto.","Hidratação e ventilação (termorregulação).","Rastrear apneia do sono; liberação médica se comorbidades."]},
+
+{keys:["osteoartrose","osteoartrite","artrose","artrite","arthrosis"],nome:"Osteoartrite (Osteoartrose)",cid:"M17",prev:"Cerca de 12% dos adultos acima de 60 anos",risco:30,rLabel:"Baixo",rCor:"#14c56c",rNota:"Exercício é tratamento de 1ª linha; repouso prolongado piora o quadro.",
+desc:"Doença articular degenerativa com degradação da cartilagem, dor mecânica e perda funcional. Contrariando o mito histórico, o exercício é a intervenção não farmacológica mais eficaz — com efeito analgésico e funcional superior a muitos medicamentos.",
+sint:["Dor mecânica (piora com uso)","Rigidez matinal menor que 30 min","Crepitação articular","Limitação de amplitude","Fraqueza periarticular","Perda funcional progressiva"],
+tratGeral:["Controle de peso","Fisioterapia motora","Educação sobre a doença","Órteses/bengala se necessário","Terapia cognitivo-comportamental para dor"],
+meds:[{n:"Paracetamol",g:"acetaminophen",c:"Analgésico",e:"Seguro para exercício (respeitar dose máxima)."},{n:"Ibuprofeno",g:"ibuprofen",c:"AINE",e:"Pode mascarar dor lesiva — não treinar no limite."},{n:"Celecoxibe",g:"celecoxib",c:"COX-2",e:"Mesma ressalva: analgesia pode ocultar sobrecarga."}],
+proto:{vol:"150 min",int:"Moderada · baixo impacto",freq:"3–5 dias"},
+exer:[{i:"waves",t:"Hidroginástica",f:"2–3x/sem",d:"45 min",in:"Moderada",n:"Flutuação reduz carga em até 75% mantendo resistência."},{i:"dumbbell",t:"Fortalecimento (quadríceps/glúteos)",f:"2–3x/sem",d:"3 × 10–15",in:"Leve–moderada, sem dor",n:"Quadríceps forte = amortecedor do joelho; isométricos em fase aguda."},{i:"footprints",t:"Bike ergométrica / caminhada plana",f:"3–5x/sem",d:"20–40 min",in:"Moderada",n:"Bike é excelente para OA de joelho."},{i:"stretch-horizontal",t:"Mobilidade e ADM",f:"Diário",d:"10 min",in:"Leve",n:"Preservar amplitude é tão importante quanto força."}],
+contra:["Dor acima de 4/10 ou dor 2h pós-sessão: reduzir carga.","Evitar agachamento profundo e impacto repetitivo em crise.","NUNCA prescrever repouso prolongado.","Crise aguda: gelo + modalidade suave."]},
+
+{keys:["asma","asthma","bronqu","bronchial","broncoespasmo"],nome:"Asma Brônquica",cid:"J45",prev:"Cerca de 20 milhões de brasileiros",risco:35,rLabel:"Baixo–moderado",rCor:"#84cc16",rNota:"Asma controlada permite exercício até de alto rendimento; aquecimento gradual é essencial.",
+desc:"Doença inflamatória crônica das vias aéreas com hiperresponsividade e limitação variável do fluxo aéreo. O treino regular reduz frequência e gravidade das crises; o aquecimento gradual induz período refratário protetor contra broncoespasmo induzido por exercício.",
+sint:["Dispneia episódica","Sibilância (chiado)","Tosse noturna","Opressão torácica","Intolerância ao esforço","Crises com ar frio/seco"],
+tratGeral:["Controle ambiental (ácaros, fumo)","Técnica respiratória","Vacinação em dia","Plano de ação escrito","Reavaliação periódica"],
+meds:[{n:"Salbutamol",g:"albuterol",c:"β2-agonista",e:"Pode ser usado 15 min pré-treino; taquicardia possível."},{n:"Fluticasona",g:"fluticasone",c:"Corticoide inalatório",e:"Controle de base; sem impacto no exercício."},{n:"Montelucaste",g:"montelukast",c:"Antileucotrieno",e:"Protege contra broncoespasmo induzido por exercício."}],
+proto:{vol:"150 min",int:"Progressiva c/ aquecimento",freq:"3–5 dias"},
+exer:[{i:"footprints",t:"Aeróbico intervalado + aquecimento longo",f:"3–5x/sem",d:"30–45 min (10–15 min aquecimento)",in:"Moderada progressiva",n:"Aquecimento gradual induz período refratário protetor."},{i:"waves",t:"Natação recreativa",f:"2x/sem",d:"30 min",in:"Moderada",n:"Ar úmido e quente reduz risco de crise."},{i:"wind",t:"Treino de musculatura respiratória",f:"Diário",d:"10 min",in:"Leve",n:"Reduz percepção de dispneia no esforço."},{i:"dumbbell",t:"Resistido leve (intermitente)",f:"2x/sem",d:"2 × 10–12",in:"Moderada",n:"Bem tolerado por ser intermitente por natureza."}],
+contra:["Asma não controlada: estabilizar antes de iniciar.","Evitar frio seco intenso sem proteção.","Broncodilatador de resgate SEMPRE disponível.","Evitar pólen/picos de poluição."]},
+
+{keys:["depress","depressiva","depressivo","triste","humor"],nome:"Transtorno Depressivo Maior",cid:"F32",prev:"10,2% dos brasileiros (OMS)",risco:20,rLabel:"Baixo",rCor:"#14c56c",rNota:"Exercício tem efeito antidepressivo comparável a medicação em quadros leves–moderados.",
+desc:"Humor deprimido persistente, anedonia e redução de energia por duas semanas ou mais. O exercício é intervenção com nível de evidência A: age via BDNF, monoaminas e redução de neuroinflamação, além de ganhos de autoeficácia e socialização.",
+sint:["Humor deprimido por 2 semanas ou mais","Anedonia","Fadiga e anergia","Alterações de sono/apetite","Dificuldade de concentração","Isolamento social"],
+tratGeral:["Psicoterapia","Higiene do sono","Exposição à luz solar","Rede de apoio social","Rotina estruturada"],
+meds:[{n:"Sertralina",g:"sertraline",c:"ISRS",e:"Sem impacto relevante no exercício; raro hiponatremia."},{n:"Fluoxetina",g:"fluoxetine",c:"ISRS",e:"Pode reduzir apetite — atenção à energia disponível."},{n:"Amitriptilina",g:"amitriptyline",c:"Tricíclico",e:"Sedação/hipotensão ortostática — cuidado em mudanças de posição."}],
+proto:{vol:"150–300 min",int:"Moderada (prazer primeiro)",freq:"3–5 dias"},
+exer:[{i:"footprints",t:"Aeróbico rítmico (caminhada, dança)",f:"3–5x/sem",d:"30–45 min",in:"Moderada",n:"Efeito surge em 2–4 semanas; aderência é prioridade nº 1."},{i:"dumbbell",t:"Treino resistido",f:"2–3x/sem",d:"8 exercícios · 2–3 séries",in:"Moderada (RPE 12–14)",n:"Autoeficácia e autoestima — efeito psicológico potente."},{i:"users",t:"Atividades em grupo",f:"1–2x/sem",d:"60 min",in:"Variada",n:"Combate isolamento — elemento terapêutico subestimado."},{i:"flower-2",t:"Yoga / mindfulness",f:"2x/sem",d:"30–60 min",in:"Leve–moderada",n:"Reduz ruminação mental."}],
+contra:["Enquadrar como dose de bem-estar, nunca obrigação/culpa.","Dia de baixa energia: sessão de 10 min já é vitória.","Sinais de risco (ideação suicida): encaminhar IMEDIATAMENTE (CVV 188).","Não substituir medicação sem ordem médica."]},
+
+{keys:["lombalgia","lombar","coluna","low back","dorsalgia"],nome:"Lombalgia Crônica",cid:"M54",prev:"Principal causa de incapacidade no mundo (GBD)",risco:25,rLabel:"Baixo",rCor:"#14c56c",rNota:"Movimento é tratamento; repouso prolongado piora prognóstico.",
+desc:"Dor na região lombar com mais de 12 semanas de duração, na maioria dos casos inespecífica (sem bandeira vermelha). Diretrizes internacionais colocam exercício terapêutico como primeira linha — repouso prolongado está contraindicado.",
+sint:["Dor lombar por mais de 12 semanas","Rigidez matinal","Espasmo muscular","Medo de movimentar (cinesiofobia)","Dor referida em glúteos","Piora postural prolongada"],
+tratGeral:["Educação sobre dor (neurociência da dor)","Higiene postural dinâmica","Gestão de estresse","Retorno gradual às atividades","Evitar repouso prolongado"],
+meds:[{n:"Naproxeno",g:"naproxen",c:"AINE",e:"Curto prazo; não mascarar técnica inadequada."},{n:"Ciclobenzaprina",g:"cyclobenzaprine",c:"Relaxante muscular",e:"Sedação — evitar treinos de equilíbrio sob efeito."},{n:"Duloxetina",g:"duloxetine",c:"IRSN",e:"Útil em dor crônica; observar tontura inicial."}],
+proto:{vol:"150 min",int:"Moderada",freq:"4–5 dias"},
+exer:[{i:"dumbbell",t:"Fortalecimento de core (McGill Big 3)",f:"3–4x/sem",d:"3 séries progressivas",in:"Moderada",n:"Prancha lateral, bird-dog e curl-up: estabilidade sem flexão repetida."},{i:"footprints",t:"Caminhada",f:"Diário",d:"20–40 min",in:"Leve–moderada",n:"Melhor remédio inicial — dessensibiliza o medo de mover."},{i:"stretch-horizontal",t:"Mobilidade de quadril e torácica",f:"Diário",d:"10–15 min",in:"Leve",n:"Quadril móvel = lombar protegida."},{i:"waves",t:"Natação/hidro (estilo confortável)",f:"2x/sem",d:"30 min",in:"Moderada",n:"Evitar hiperextensão lombar (borboleta)."}],
+contra:["Bandeiras vermelhas (febre, perda de peso, trauma): encaminhar ao médico.","Evitar flexão+rotação sob carga em fase aguda.","Progressão gradual de carga — nunca dor acima de 3/10 durante.","Cinesiofobia: exposição gradual e educação."]},
+
+{keys:["osteoporose","osteopenia","osso","fratura"],nome:"Osteoporose",cid:"M81",prev:"Cerca de 10 milhões de brasileiros (ABRASSO)",risco:50,rLabel:"Moderado",rCor:"#f59e0b",rNota:"Exercício com carga é osteogênico; evitar quedas e flexão torácica forçada.",
+desc:"Doença metabólica óssea com redução de densidade mineral e deterioração da microarquitetura, aumentando risco de fratura. Exercícios com impacto/carga e treino de força são estímulos osteogênicos; treino de equilíbrio reduz quedas — principal causa de fratura.",
+sint:["Perda de estatura progressiva","Cifose torácica (corcunda)","Fraturas por fragilidade","Dor dorsal crônica","T-score menor ou igual a -2,5","Fraqueza muscular associada"],
+tratGeral:["Ingestão adequada de cálcio/vitamina D","Prevenção de quedas em casa","Exposição solar segura","Cessação de tabagismo/álcool","Avaliação de risco FRAX"],
+meds:[{n:"Alendronato",g:"alendronate",c:"Bisfosfonato",e:"Sem impacto direto no treino; manter posição ereta pós-dose."},{n:"Carbonato de cálcio + D",g:"calcium carbonate",c:"Suplemento",e:"Seguro; hidratação adequada."},{n:"Denosumabe",g:"denosumab",c:"Anticorpo RANKL",e:"Sem restrição específica ao exercício."}],
+proto:{vol:"150 min",int:"Moderada–alta (carga)",freq:"4–5 dias"},
+exer:[{i:"dumbbell",t:"Treino de força progressivo",f:"2–3x/sem",d:"8 exercícios · 2–3 séries",in:"Moderada–alta (70–85% 1RM)",n:"Carga mecânica é o estímulo osteogênico principal."},{i:"footprints",t:"Impacto seguro (caminhada rápida, saltitos)",f:"3–5x/sem",d:"20–30 min",in:"Moderada",n:"Impacto vertical estimula fêmur/coluna — conforme tolerância."},{i:"move",t:"Equilíbrio e prevenção de quedas",f:"Diário",d:"10 min",in:"Leve–moderada",n:"Unipodal, tandem, superfícies instáveis."},{i:"stretch-horizontal",t:"Postural e extensão torácica",f:"Diário",d:"10 min",in:"Leve",n:"Fortalecer extensores; evitar flexão forçada."}],
+contra:["PROIBIDO flexão torácica forçada + rotação com carga (risco de fratura vertebral).","Evitar quedas: superfícies seguras, sem obstáculos.","Impacto apenas se tolerado e sem fratura recente.","T-score muito baixo: avaliação médica prévia ao impacto."]}
+];
+
+function renderMeds(e){
+  var medsHtml='';
+  if(e.meds && e.meds.length){
+    medsHtml='<div class="grid sm:grid-cols-2 gap-4" id="medsGrid">';
+    for(var i=0;i<e.meds.length;i++){
+      var m=e.meds[i];
+      medsHtml+='<div class="card p-5" data-med="'+i+'">'+
+        '<div class="flex items-start justify-between gap-2 mb-1"><p class="font-bold">'+m.n+'</p><span class="badge b-blue">'+m.c+'</span></div>'+
+        '<p class="text-xs text-slate-400 mb-2 rxnorm">Verificando na RxNorm...</p>'+
+        '<p class="text-sm text-slate-600 dark:text-slate-300"><strong class="text-xs uppercase text-slate-400">No exercício:</strong> '+m.e+'</p>'+
+      '</div>';
+    }
+    medsHtml+='</div>';
+  } else {
+    medsHtml='<div class="card p-6 text-sm text-slate-500 dark:text-slate-400">Tratamento predominantemente não farmacológico — seguir conduta médica individual.</div>';
+  }
+  var tgHtml='';
+  for(var j=0;j<e.tratGeral.length;j++){
+    tgHtml+='<li class="flex gap-2 text-sm"><i data-lucide="check" class="w-4 h-4 text-mint-500 flex-shrink-0 mt-0.5"></i>'+e.tratGeral[j]+'</li>';
+  }
+  document.getElementById('tab-tratamento').innerHTML=
+  '<div class="card p-6 mb-5 flex items-center gap-3">'+
+    '<div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950/50 flex items-center justify-center"><i data-lucide="pill" class="w-5 h-5 text-purple-600 dark:text-purple-400"></i></div>'+
+    '<div><h3 class="font-bold text-lg">Tratamento possível</h3><p class="text-xs text-slate-500 dark:text-slate-400">Abordagens não farmacológicas + medicamentos comuns (RxNorm/NLM)</p></div>'+
+  '</div>'+
+  '<div class="grid lg:grid-cols-3 gap-5 mb-5">'+
+    '<div class="card p-6"><p class="font-bold mb-3 flex items-center gap-2"><i data-lucide="leaf" class="w-5 h-5 text-mint-500"></i>Abordagens não farmacológicas</p><ul class="space-y-2">'+tgHtml+'</ul></div>'+
+    '<div class="lg:col-span-2">'+medsHtml+'</div>'+
+  '</div>'+
+  '<div class="p-4 rounded-2xl b-amber flex gap-3"><i data-lucide="alert-triangle" class="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5"></i>'+
+  '<p class="text-sm text-amber-800 dark:text-amber-200"><strong>Atenção, profissional:</strong> personal trainer NÃO prescreve medicamentos. Estas informações servem para entender efeitos no desempenho (ex.: betabloqueador reduz FC máxima; diurético aumenta risco de desidratação).</p></div>';
+}
+
+function renderExer(e){
+  var exerHtml='';
+  for(var i=0;i<e.exer.length;i++){
+    var x=e.exer[i];
+    exerHtml+='<div class="card p-5">'+
+      '<div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-xl bg-mint-100 dark:bg-mint-900/30 flex items-center justify-center"><i data-lucide="'+x.i+'" class="w-5 h-5 text-mint-600 dark:text-mint-400"></i></div><p class="font-bold text-sm leading-snug">'+x.t+'</p></div>'+
+      '<div class="flex flex-wrap gap-1.5 mb-2"><span class="badge b-blue">'+x.f+'</span><span class="badge b-green">'+x.d+'</span><span class="badge b-amber">'+x.in+'</span></div>'+
+      '<p class="text-xs text-slate-500 dark:text-slate-400">'+x.n+'</p>'+
+    '</div>';
+  }
+  var contraHtml='';
+  for(var j=0;j<e.contra.length;j++){
+    contraHtml+='<li class="flex gap-2 text-sm text-red-800 dark:text-red-300"><i data-lucide="x-circle" class="w-4 h-4 flex-shrink-0 mt-0.5"></i>'+e.contra[j]+'</li>';
+  }
+  document.getElementById('tab-exercicio').innerHTML=
+  '<div class="grid sm:grid-cols-3 gap-4 mb-6">'+
+    '<div class="rounded-3xl bg-gradient-to-br from-mint-500 to-mint-700 p-6 text-white card"><i data-lucide="timer" class="w-7 h-7 mb-3 opacity-80"></i><p class="text-2xl font-extrabold">'+e.proto.vol+'</p><p class="text-sm opacity-90">Volume semanal aeróbico</p></div>'+
+    '<div class="card p-6"><i data-lucide="zap" class="w-7 h-7 mb-3 text-brand-500"></i><p class="text-2xl font-extrabold">'+e.proto.int+'</p><p class="text-sm text-slate-500 dark:text-slate-400">Intensidade</p></div>'+
+    '<div class="card p-6"><i data-lucide="calendar-check" class="w-7 h-7 mb-3 text-purple-500"></i><p class="text-2xl font-extrabold">'+e.proto.freq+'</p><p class="text-sm text-slate-500 dark:text-slate-400">Frequência</p></div>'+
+  '</div>'+
+  '<h4 class="font-bold text-lg mb-4 flex items-center gap-2"><i data-lucide="list-checks" class="w-5 h-5 text-mint-500"></i>Protocolo indicado</h4>'+
+  '<div class="grid md:grid-cols-2 gap-4 mb-6">'+exerHtml+'</div>'+
+  '<div class="rounded-3xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 p-6">'+
+    '<h4 class="font-bold text-red-700 dark:text-red-400 mb-3 flex items-center gap-2"><i data-lucide="shield-alert" class="w-5 h-5"></i>Contraindicações e precauções</h4>'+
+    '<ul class="space-y-2">'+contraHtml+'</ul>'+
+  '</div>';
+}
+
+function renderReport(e){
+  var medsListTxt='',exerListTxt='',contraTxt='';
+  for(var i=0;i<e.meds.length;i++){ medsListTxt+=(medsListTxt?'\n':'')+'- '+e.meds[i].n+' ('+e.meds[i].c+'): '+e.meds[i].e; }
+  for(var k=0;k<e.exer.length;k++){ var x=e.exer[k]; exerListTxt+=(exerListTxt?'\n':'')+'- '+x.t+': '+x.f+', '+x.d+', '+x.in+'. '+x.n; }
+  for(var j=0;j<e.contra.length;j++){ contraTxt+=(contraTxt?'\n':'')+'- '+e.contra[j]; }
+  var data=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+  document.getElementById('tab-relatorio').innerHTML=
+  '<div class="flex flex-wrap gap-3 mb-6">'+
+    '<button onclick="window.print()" class="btn-p"><i data-lucide="printer" class="w-4 h-4"></i>Imprimir / PDF</button>'+
+    '<button onclick="copyReport()" class="btn-g"><i data-lucide="copy" class="w-4 h-4"></i>Copiar texto</button>'+
+    '<button onclick="downloadReport()" class="btn-g"><i data-lucide="download" class="w-4 h-4"></i>Baixar .txt</button>'+
+  '</div>'+
+  '<div class="print-area card p-8 sm:p-10">'+
+    '<div class="flex items-center justify-between pb-6 border-b border-slate-200 dark:border-slate-800 mb-6">'+
+      '<div class="flex items-center gap-3"><div class="w-11 h-11 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center"><i data-lucide="activity" class="w-6 h-6 text-white"></i></div>'+
+      '<div><p class="font-bold">FisioPrescribe</p><p class="text-xs text-slate-500">Relatório técnico de orientação</p></div></div>'+
+      '<p class="text-xs text-slate-400">'+data+'</p>'+
+    '</div>'+
+    '<div class="space-y-6 text-sm leading-relaxed">'+
+      '<div><p class="font-bold text-brand-600 dark:text-brand-400 uppercase text-xs tracking-wider mb-1">1 · Patologia</p>'+
+      '<p class="font-bold text-base">'+e.nome+' <span class="text-slate-400 font-mono text-xs">(CID-10 '+e.cid+')</span></p>'+
+      '<p class="mt-1 text-slate-600 dark:text-slate-300">'+e.desc+'</p>'+
+      '<p class="mt-1 text-slate-500 text-xs">Sinais frequentes: '+e.sint.join('; ')+'.</p></div>'+
+      '<div><p class="font-bold text-purple-600 dark:text-purple-400 uppercase text-xs tracking-wider mb-1">2 · Tratamento possível</p>'+
+      '<p class="text-slate-600 dark:text-slate-300">Não farmacológico: '+e.tratGeral.join('; ')+'.</p>'+
+      (e.meds.length?'<p class="mt-1 text-slate-600 dark:text-slate-300 whitespace-pre-line">Medicamentos comuns:\n'+medsListTxt+'</p>':'')+
+      '</div>'+
+      '<div><p class="font-bold text-mint-600 dark:text-mint-400 uppercase text-xs tracking-wider mb-1">3 · Indicação de exercício físico</p>'+
+      '<p class="text-slate-600 dark:text-slate-300">Volume: '+e.proto.vol+' · Intensidade: '+e.proto.int+' · Frequência: '+e.proto.freq+'.</p>'+
+      '<p class="mt-2 text-slate-600 dark:text-slate-300 whitespace-pre-line">'+exerListTxt+'</p>'+
+      '<p class="mt-2 text-red-600 dark:text-red-400 text-xs font-semibold whitespace-pre-line">Precauções:\n'+contraTxt+'</p></div>'+
+      '<div><p class="font-bold text-slate-500 uppercase text-xs tracking-wider mb-1">4 · Classificação de risco</p>'+
+      '<p class="text-slate-600 dark:text-slate-300">'+e.rLabel+' — '+e.rNota+'</p></div>'+
+    '</div>'+
+    '<div class="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50">'+
+      '<p class="text-xs text-slate-500 dark:text-slate-400"><strong>Aviso legal:</strong> ferramenta educativa de apoio à decisão para profissionais de educação física. Não substitui avaliação médica/fisioterapêutica. Prescrição final é responsabilidade do profissional. Fontes: NIH Clinical Tables, RxNorm (NLM), ACSM, OMS 2020.</p>'+
+    '</div>'+
+  '</div>';
+}
+function reportText(){
+  var e=ATUAL; if(!e) return '';
+  var medsListTxt='',exerListTxt='',contraTxt='';
+  for(var i=0;i<e.meds.length;i++){ medsListTxt+=(medsListTxt?'\n':'')+'- '+e.meds[i].n+' ('+e.meds[i].c+'): '+e.meds[i].e; }
+  for(var k=0;k<e.exer.length;k++){ var x=e.exer[k]; exerListTxt+=(exerListTxt?'\n':'')+'- '+x.t+': '+x.f+', '+x.d+', '+x.in+'. '+x.n; }
+  for(var j=0;j<e.contra.length;j++){ contraTxt+=(contraTxt?'\n':'')+'- '+e.contra[j]; }
+  return 'FISIOPRESCRIBE — RELATÓRIO TÉCNICO\n'+
+  'Data: '+new Date().toLocaleDateString('pt-BR')+'\n\n'+
+  '1) PATOLOGIA: '+e.nome+' (CID-10 '+e.cid+')\n'+e.desc+'\nSinais frequentes: '+e.sint.join('; ')+'.\n\n'+
+  '2) TRATAMENTO POSSÍVEL\nNão farmacológico: '+e.tratGeral.join('; ')+'.\n'+
+  (e.meds.length?'Medicamentos comuns:\n'+medsListTxt+'\n':'')+
+  '\n3) EXERCÍCIO FÍSICO\nVolume: '+e.proto.vol+' | Intensidade: '+e.proto.int+' | Frequência: '+e.proto.freq+'\n'+exerListTxt+'\n\n'+
+  'PRECAUÇÕES:\n'+contraTxt+'\n\n'+
+  'RISCO: '+e.rLabel+'. '+e.rNota+'\n\n'+
+  'AVISO: ferramenta educativa — não substitui avaliação médica. Fontes: NIH, RxNorm, ACSM, OMS.';
+}
+function copyReport(){ if(navigator.clipboard){ navigator.clipboard.writeText(reportText()).then(function(){alert('Relatório copiado!');}); } else { alert('Copie manualmente.'); } }
+function downloadReport(){
+  var b=new Blob([reportText()],{type:'text/plain;charset=utf-8'});
+  var a=document.createElement('a'); a.href=URL.createObjectURL(b);
+  a.download='relatorio-'+norm(ATUAL.nome).replace(/\s+/g,'-')+'.txt'; a.click(); URL.revokeObjectURL(a.href);
+}
+function render(e,ehGeneric){
+  ATUAL=e;
+  document.getElementById('loading').classList.add('hidden');
+  document.getElementById('results').classList.remove('hidden');
+  renderOquee(e,ehGeneric); renderMeds(e); renderExer(e); renderReport(e);
+  icons();
+  verifyMeds(e);
+}
+async function verifyMeds(e){
+  if(!e.meds||!e.meds.length) return;
+  for(var i=0;i<e.meds.length;i++){
+    (function(i){
+      var g=e.meds[i].g;
+      fT('https://rxnav.nlm.nih.gov/REST/drugs.json?name='+encodeURIComponent(g),5000)
+        .then(function(r){return r.json();})
+        .then(function(d){
+          var id=null;
+          try{
+            var cg=d.drugGroup.conceptGroup;
+            for(var c=0;c<cg.length;c++){
+              if(cg[c].conceptProperties && cg[c].conceptProperties[0] && cg[c].conceptProperties[0].rxcui){ id=cg[c].conceptProperties[0].rxcui; break; }
+            }
+          }catch(_){}
+          var el=document.querySelector('[data-med="'+i+'"] .rxnorm');
+          if(el){ el.innerHTML= id? '<span class="badge b-green">RxNorm RXCUI '+id+'</span>' : 'Base local'; }
+        })
+        .catch(function(){ var el=document.querySelector('[data-med="'+i+'"] .rxnorm'); if(el) el.textContent='Base local (offline)'; });
+    })(i);
+  }
+}
+
+function renderOquee(e,ehGeneric){
+  var sintHtml='';
+  for(var i=0;i<e.sint.length;i++){
+    sintHtml+='<div class="flex items-center gap-2 text-sm p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60"><i data-lucide="circle-dot" class="w-4 h-4 text-brand-500 flex-shrink-0"></i>'+e.sint[i]+'</div>';
+  }
+  var gb=ehGeneric?'<div class="mt-5 p-3.5 rounded-xl b-amber text-amber-800 dark:text-amber-200 text-xs flex gap-2"><i data-lucide="info" class="w-4 h-4 flex-shrink-0"></i>Descrição oficial obtida da NIH Clinical Table Search Service (NLM).</div>':'';
+  document.getElementById('tab-oquee').innerHTML=
+  '<div class="grid lg:grid-cols-3 gap-5">'+
+    '<div class="lg:col-span-2 card p-7">'+
+      '<div class="flex items-start justify-between gap-3 mb-4">'+
+        '<div><p class="text-xs font-semibold uppercase tracking-wider text-brand-500 mb-1">Descrição clínica</p>'+
+        '<h3 class="text-2xl font-bold">'+e.nome+'</h3></div>'+
+        '<span class="badge b-blue font-mono">CID-10 '+e.cid+'</span>'+
+      '</div>'+
+      '<p class="text-slate-600 dark:text-slate-300 leading-relaxed mb-6">'+e.desc+'</p>'+
+      '<p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Sinais e sintomas frequentes</p>'+
+      '<div class="grid sm:grid-cols-2 gap-2.5">'+sintHtml+'</div>'+gb+
+    '</div>'+
+    '<div class="space-y-4">'+
+      '<div class="rounded-3xl bg-gradient-to-br from-brand-600 to-brand-800 p-6 text-white card">'+
+        '<i data-lucide="trending-up" class="w-8 h-8 mb-3 opacity-80"></i>'+
+        '<p class="text-sm opacity-80 mb-1">Prevalência</p><p class="text-xl font-bold leading-snug">'+e.prev+'</p>'+
+      '</div>'+
+      '<div class="card p-6">'+
+        '<p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Risco para exercício</p>'+
+        '<div class="h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden mb-2"><div id="riskFill" class="risk-fill h-full rounded-full" style="width:0;background:'+e.rCor+'"></div></div>'+
+        '<p class="text-sm font-bold" style="color:'+e.rCor+'">'+e.rLabel+'</p>'+
+        '<p class="text-xs text-slate-500 dark:text-slate-400 mt-2">'+e.rNota+'</p>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+  setTimeout(function(){var f=document.getElementById('riskFill'); if(f) f.style.width=e.risco+'%';},150);
+}
+
+function switchTab(name){
+  var btns=document.querySelectorAll('.tab-btn');
+  for(var i=0;i<btns.length;i++){ btns[i].classList.toggle('on', btns[i].getAttribute('data-tab')===name); }
+  var tabs=document.querySelectorAll('.tab-content');
+  for(var j=0;j<tabs.length;j++){
+    var t=tabs[j];
+    if(t.id==='tab-'+name){ t.classList.remove('hidden'); t.classList.remove('fade-in'); void t.offsetWidth; t.classList.add('fade-in'); }
+    else{ t.classList.add('hidden'); }
+  }
+}
+
+function init(){
+  document.getElementById('themeToggle').addEventListener('click',function(){
+    document.documentElement.classList.toggle('dark');
+    try{ localStorage.setItem('fp-theme',document.documentElement.classList.contains('dark')?'dark':'light'); }catch(_){}
+  });
+  try{ if(localStorage.getItem('fp-theme')==='dark') document.documentElement.classList.add('dark'); }catch(_){}
+
+  document.getElementById('tabsBar').addEventListener('click',function(ev){
+    var b=ev.target.closest('.tab-btn'); if(!b) return; switchTab(b.getAttribute('data-tab'));
+  });
+
+  document.getElementById('newSearch').addEventListener('click',function(){
+    document.getElementById('results').classList.add('hidden');
+    document.getElementById('errorBox').classList.add('hidden');
+    var inp=document.getElementById('searchInput'); inp.value=''; inp.focus();
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+
+  var inp=document.getElementById('searchInput');
+  var sugBox=document.getElementById('suggestions');
+  inp.addEventListener('input',function(){
+    var v=norm(inp.value);
+    if(v.length<2){ sugBox.classList.add('hidden'); return; }
+    var hits=DB.filter(function(x){ return norm(x.nome).indexOf(v)!==-1 || x.keys.some(function(k){return v.indexOf(k)!==-1;}); });
+    if(!hits.length){ sugBox.classList.add('hidden'); return; }
+    var h='';
+    for(var i=0;i<hits.length;i++){
+      h+='<div class="sug" data-n="'+hits[i].nome+'"><i data-lucide="stethoscope" class="w-4 h-4 text-brand-500"></i>'+hits[i].nome+'<span class="ml-auto text-[10px] text-slate-400 font-mono">CID '+hits[i].cid+'</span></div>';
+    }
+    sugBox.innerHTML=h; sugBox.classList.remove('hidden'); icons();
+  });
+  sugBox.addEventListener('click',function(ev){
+    var s=ev.target.closest('.sug'); if(!s) return;
+    sugBox.classList.add('hidden'); inp.value=s.getAttribute('data-n'); run(inp.value);
+  });
+  document.addEventListener('click',function(ev){ if(!ev.target.closest('#searchInput')&&!ev.target.closest('#suggestions')) sugBox.classList.add('hidden'); });
+
+  var chips=document.querySelectorAll('.chip');
+  for(var i=0;i<chips.length;i++){
+    (function(c){ c.addEventListener('click',function(){ inp.value=c.getAttribute('data-p'); run(inp.value); }); })(chips[i]);
+  }
+  document.getElementById('searchBtn').addEventListener('click',function(){ run(inp.value); });
+  inp.addEventListener('keydown',function(e){ if(e.key==='Enter') run(inp.value); });
+
+  icons();
+}
+document.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>
