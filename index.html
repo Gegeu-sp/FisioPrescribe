@@ -388,7 +388,8 @@ function renderReport(e){
       '<div><p class="font-bold text-brand-600 dark:text-brand-400 uppercase text-xs tracking-wider mb-1">1 · Patologia</p>'+
       '<p class="font-bold text-base">'+e.nome+' <span class="text-slate-400 font-mono text-xs">(CID-10 '+e.cid+')</span></p>'+
       '<p class="mt-1 text-slate-600 dark:text-slate-300">'+e.desc+'</p>'+
-      '<p class="mt-1 text-slate-500 text-xs">Sinais frequentes: '+e.sint.join('; ')+'.</p></div>'+
+      '<p class="mt-1 text-slate-500 text-xs">Sinais frequentes: '+e.sint.join('; ')+'.</p>'+
+      '<p class="mt-1 text-slate-400 text-xs">Fonte da resposta: '+e.fonte+'.</p></div>'+
       '<div><p class="font-bold text-purple-600 dark:text-purple-400 uppercase text-xs tracking-wider mb-1">2 · Tratamento possível</p>'+
       '<p class="text-slate-600 dark:text-slate-300">Não farmacológico: '+e.tratGeral.join('; ')+'.</p>'+
       (e.meds.length?'<p class="mt-1 text-slate-600 dark:text-slate-300 whitespace-pre-line">Medicamentos comuns:\n'+medsListTxt+'</p>':'')+
@@ -410,7 +411,8 @@ function reportText(){
   var parts=reportParts(e), medsListTxt=parts.medsListTxt, exerListTxt=parts.exerListTxt, contraTxt=parts.contraTxt;
   return 'FISIOPRESCRIBE — RELATÓRIO TÉCNICO\n'+
   'Data: '+new Date().toLocaleDateString('pt-BR')+'\n\n'+
-  '1) PATOLOGIA: '+e.nome+' (CID-10 '+e.cid+')\n'+e.desc+'\nSinais frequentes: '+e.sint.join('; ')+'.\n\n'+
+  '1) PATOLOGIA: '+e.nome+' (CID-10 '+e.cid+')\n'+e.desc+'\nSinais frequentes: '+e.sint.join('; ')+'.\n'+
+  'Fonte da resposta: '+e.fonte+'.\n\n'+
   '2) TRATAMENTO POSSÍVEL\nNão farmacológico: '+e.tratGeral.join('; ')+'.\n'+
   (e.meds.length?'Medicamentos comuns:\n'+medsListTxt+'\n':'')+
   '\n3) EXERCÍCIO FÍSICO\nVolume: '+e.proto.vol+' | Intensidade: '+e.proto.int+' | Frequência: '+e.proto.freq+'\n'+exerListTxt+'\n\n'+
@@ -425,6 +427,7 @@ function downloadReport(){
   a.download='relatorio-'+norm(ATUAL.nome).replace(/\s+/g,'-')+'.txt'; a.click(); URL.revokeObjectURL(a.href);
 }
 function render(e,ehGeneric){
+  e.fonte=ehGeneric?'NIH Clinical Table Search Service (online)':'Base local curada (ACSM/OMS)';
   ATUAL=e;
   document.getElementById('loading').classList.add('hidden');
   document.getElementById('results').classList.remove('hidden');
@@ -461,13 +464,16 @@ function renderOquee(e,ehGeneric){
     sintHtml+='<div class="flex items-center gap-2 text-sm p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60"><i data-lucide="circle-dot" class="w-4 h-4 text-brand-500 flex-shrink-0"></i>'+e.sint[i]+'</div>';
   }
   var gb=ehGeneric?'<div class="mt-5 p-3.5 rounded-xl b-amber text-amber-800 dark:text-amber-200 text-xs flex gap-2"><i data-lucide="info" class="w-4 h-4 flex-shrink-0"></i>Descrição oficial obtida da NIH Clinical Table Search Service (NLM).</div>':'';
+  var fonteBadge=ehGeneric
+    ?'<span class="badge b-amber" title="Resposta consultada em tempo real na NIH Clinical Tables"><i data-lucide="wifi" class="w-3 h-3"></i>Fonte: NIH (online)</span>'
+    :'<span class="badge b-green" title="Resposta vinda da base curada da própria plataforma (ACSM/OMS)"><i data-lucide="database" class="w-3 h-3"></i>Fonte: Base local</span>';
   document.getElementById('tab-oquee').innerHTML=
   '<div class="grid lg:grid-cols-3 gap-5">'+
     '<div class="lg:col-span-2 card p-7">'+
       '<div class="flex items-start justify-between gap-3 mb-4">'+
         '<div><p class="text-xs font-semibold uppercase tracking-wider text-brand-500 mb-1">Descrição clínica</p>'+
         '<h3 class="text-2xl font-bold">'+e.nome+'</h3></div>'+
-        '<span class="badge b-blue font-mono">CID-10 '+e.cid+'</span>'+
+        '<div class="flex flex-col items-end gap-1.5"><span class="badge b-blue font-mono">CID-10 '+e.cid+'</span>'+fonteBadge+'</div>'+
       '</div>'+
       '<p class="text-slate-600 dark:text-slate-300 leading-relaxed mb-6">'+e.desc+'</p>'+
       '<p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Sinais e sintomas frequentes</p>'+
