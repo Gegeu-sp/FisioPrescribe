@@ -23,6 +23,13 @@ análise sempre funcione, mesmo sem internet:
 **Princípio:** as APIs externas são opcionais. Se falharem, a plataforma exibe
 a base local ou um relatório conservador — nunca trava.
 
+**Transparência de fonte na interface:** todo resultado exibe, no topo da aba
+"O que é" e no relatório final, um badge de **Fonte da resposta** — `Base
+local` (camada 1) ou `NIH (online)` (camada 2) — e cada medicamento mostra
+seu próprio selo de verificação (`RxNorm RXCUI {id}` ou `Base local`, camada
+3), para que o profissional saiba exatamente de onde veio cada informação
+antes de usá-la.
+
 ## 1️⃣ NIH Clinical Table Search Service
 
 **Função:** identificar e descrever patologias fora da base local.
