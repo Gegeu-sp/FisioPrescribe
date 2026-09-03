@@ -10,7 +10,7 @@ análise sempre funcione, mesmo sem internet:
 ```
 ┌──────────────────────────────────────────────────────┐
 │  CAMADA 1 · BASE LOCAL (offline, instantânea)         │
-│  8 patologias curadas — NUNCA falha                   │
+│  20 patologias curadas — NUNCA falha                  │
 ├──────────────────────────────────────────────────────┤
 │  CAMADA 2 · NIH CLINICAL TABLES (fallback online)     │
 │  Milhares de condições — timeout de 7s                │

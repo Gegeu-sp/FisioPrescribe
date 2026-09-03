@@ -61,8 +61,20 @@ estruturado em 4 dimensões:
 | Osteoartrite | M17 | 🟢 Baixo | Hidro + fortalecimento |
 | Asma Brônquica | J45 | 🟢 Baixo–moderado | Aquecimento gradual |
 | Transtorno Depressivo | F32 | 🟢 Baixo | Aeróbico + social |
+| Hérnia de Disco Lombar | M51 | 🟢 Baixo–moderado | Core sem flexão + caminhada |
 | Lombalgia Crônica | M54 | 🟢 Baixo | Core (McGill Big 3) |
 | Osteoporose | M81 | 🟡 Moderado | Carga + prevenção de quedas |
+| Transtorno de Ansiedade Generalizada | F41.1 | 🟢 Baixo | Aeróbico + respiração |
+| Fibromialgia | M79.7 | 🟢 Baixo–moderado | Hidro + progressão muito gradual |
+| DPOC | J44 | 🟡 Moderado | Aeróbico intervalado + resp. |
+| Insuficiência Cardíaca | I50 | 🟡 Moderado–alto | Aeróbico supervisionado |
+| Doença Arterial Coronariana | I25 | 🟡 Moderado–alto | Reabilitação cardíaca faseada |
+| AVC (sequelas) | I69 | 🟡 Moderado | Equilíbrio + marcha |
+| Doença de Parkinson | G20 | 🟢 Baixo–moderado | Potência + agilidade |
+| Artrite Reumatoide | M06 | 🟢 Baixo–moderado | Hidro + fortalecimento articular |
+| Hipotireoidismo | E03 | 🟢 Baixo | Aeróbico + resistido |
+| Dislipidemia | E78 | 🟢 Baixo | Aeróbico de alto volume |
+| Insônia Crônica | G47.00 | 🟢 Baixo | Aeróbico matinal |
 
 Para qualquer outra condição, a plataforma consulta a NIH Clinical Tables e gera
 um relatório conservador com as diretrizes gerais da OMS + alerta de liberação
@@ -165,7 +177,7 @@ Acesse `http://localhost:8080`.
             │                 │
     ┌───────▼──────┐   ┌──────▼──────────┐
     │  BASE LOCAL   │   │  FALLBACK NIH   │
-    │ (8 patologias │   │ (Clinical Tables│
+    │ (20 patologias│   │ (Clinical Tables│
     │  instantâneo) │   │  + genérico OMS)│
     └───────┬──────┘   └──────┬──────────┘
             └────────┬─────────┘
@@ -255,7 +267,7 @@ Fluxo recomendado para novas features (via Claude Code):
 ## 🗺️ Roadmap
 
 - [x] **Fase 1 (MVP)** — Base local + NIH + RxNorm + relatório exportável
-- [ ] **Fase 2** — Expandir base para 30+ patologias
+- [x] **Fase 2** — Expandir base para 20 patologias (meta original: 30+; seguindo expandindo)
 - [ ] **Fase 3** — Salvar relatórios por cliente (`localStorage`/IndexedDB)
 - [ ] **Fase 4** — Integração com CID-11 e tabela de procedimentos do DATASUS
 - [ ] **Fase 5** — PWA (instalável + offline completo)
