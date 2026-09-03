@@ -25,7 +25,7 @@ fontFamily:{sans:['Inter','system-ui','sans-serif']}}}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.8/index.css">
 <script src="https://unpkg.com/lucide@latest"></script>
 <style>
-*{font-family:'Inter',system-ui,sans-serif}
+*{font-family:'Inter',system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth}
 ::-webkit-scrollbar{width:9px}::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:rgba(51,143,255,.35);border-radius:9px}
@@ -42,13 +42,16 @@ html{scroll-behavior:smooth}
 .card{background:#fff;border:1px solid #e2e8f0;border-radius:1.5rem;transition:transform .3s,box-shadow .3s}
 .card:hover{transform:translateY(-3px);box-shadow:0 18px 36px -14px rgba(0,0,0,.14)}
 .dark .card{background:#0f172a;border-color:#1e293b}
-.tab-btn{display:inline-flex;align-items:center;gap:.5rem;padding:.65rem 1rem;border-radius:.8rem;font-weight:600;font-size:.85rem;white-space:nowrap;border:1px solid #e2e8f0;background:#fff;color:#475569;transition:all .25s;cursor:pointer}
+.tab-btn{display:inline-flex;align-items:center;gap:.5rem;padding:.65rem 1rem;border-radius:.8rem;font-weight:600;font-size:.85rem;white-space:nowrap;border:1px solid #e2e8f0;background:#fff;color:#475569;transition:all .25s;cursor:pointer;touch-action:manipulation}
 .tab-btn:hover{border-color:#338fff;color:#1b6ff5}
+.tab-btn:active{transform:scale(.96)}
 .tab-btn.on{background:linear-gradient(135deg,#1b6ff5,#338fff);color:#fff;border-color:transparent;box-shadow:0 8px 22px -8px rgba(27,111,245,.55)}
 .dark .tab-btn{background:#0f172a;border-color:#1e293b;color:#94a3b8}
 .dark .tab-btn.on{color:#fff}
-.chip{padding:.4rem .95rem;border-radius:9999px;font-size:.8rem;font-weight:500;background:rgba(148,163,184,.12);border:1px solid rgba(148,163,184,.28);cursor:pointer;transition:all .2s}
+#tabsBar.scrollable{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent 100%);mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent 100%)}
+.chip{padding:.4rem .95rem;border-radius:9999px;font-size:.8rem;font-weight:500;background:rgba(148,163,184,.12);border:1px solid rgba(148,163,184,.28);cursor:pointer;transition:all .2s;touch-action:manipulation}
 .chip:hover{background:rgba(51,143,255,.14);border-color:rgba(51,143,255,.45);color:#1b6ff5;transform:translateY(-1px)}
+.chip:active{transform:scale(.94)}
 .btn-p{display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1.2rem;border-radius:.8rem;background:linear-gradient(135deg,#1b6ff5,#338fff);color:#fff;font-weight:600;font-size:.85rem;transition:all .2s;cursor:pointer;border:none}
 .btn-p:hover{box-shadow:0 10px 24px -8px rgba(27,111,245,.55)}
 .btn-p:active{transform:scale(.96)}
@@ -57,8 +60,8 @@ html{scroll-behavior:smooth}
 .btn-g:active{transform:scale(.96)}
 .dark .btn-g{background:#0f172a;border-color:#1e293b;color:#e2e8f0}
 .dark .btn-g:hover{background:#1e293b}
-.sug{padding:.7rem 1rem;cursor:pointer;display:flex;align-items:center;gap:.6rem;font-size:.9rem}
-.sug:hover{background:rgba(51,143,255,.1)}
+.sug{padding:.7rem 1rem;cursor:pointer;display:flex;align-items:center;gap:.6rem;font-size:.9rem;touch-action:manipulation}
+.sug:hover,.sug:active{background:rgba(51,143,255,.1)}
 .badge{display:inline-flex;align-items:center;gap:.35rem;padding:.25rem .7rem;border-radius:9999px;font-size:.7rem;font-weight:600}
 .b-blue{background:rgba(51,143,255,.12);color:#1b6ff5;border:1px solid rgba(51,143,255,.3)}
 .b-green{background:rgba(20,197,108,.12);color:#09a356;border:1px solid rgba(20,197,108,.3)}
@@ -426,6 +429,11 @@ function downloadReport(){
   var a=document.createElement('a'); a.href=URL.createObjectURL(b);
   a.download='relatorio-'+norm(ATUAL.nome).replace(/\s+/g,'-')+'.txt'; a.click(); URL.revokeObjectURL(a.href);
 }
+function updateTabsFade(){
+  var el=document.getElementById('tabsBar');
+  if(!el) return;
+  el.classList.toggle('scrollable', el.scrollWidth > el.clientWidth+2);
+}
 function render(e,ehGeneric){
   e.fonte=ehGeneric?'NIH Clinical Table Search Service (online)':'Base local curada (ACSM/OMS)';
   ATUAL=e;
@@ -434,6 +442,7 @@ function render(e,ehGeneric){
   renderOquee(e,ehGeneric); renderMeds(e); renderExer(e); renderReport(e);
   icons();
   verifyMeds(e);
+  updateTabsFade();
 }
 async function verifyMeds(e){
   if(!e.meds||!e.meds.length) return;
@@ -470,10 +479,10 @@ function renderOquee(e,ehGeneric){
   document.getElementById('tab-oquee').innerHTML=
   '<div class="grid lg:grid-cols-3 gap-5">'+
     '<div class="lg:col-span-2 card p-7">'+
-      '<div class="flex items-start justify-between gap-3 mb-4">'+
+      '<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">'+
         '<div><p class="text-xs font-semibold uppercase tracking-wider text-brand-500 mb-1">Descrição clínica</p>'+
         '<h3 class="text-2xl font-bold">'+e.nome+'</h3></div>'+
-        '<div class="flex flex-col items-end gap-1.5"><span class="badge b-blue font-mono">CID-10 '+e.cid+'</span>'+fonteBadge+'</div>'+
+        '<div class="flex flex-row sm:flex-col flex-wrap items-start sm:items-end gap-1.5"><span class="badge b-blue font-mono">CID-10 '+e.cid+'</span>'+fonteBadge+'</div>'+
       '</div>'+
       '<p class="text-slate-600 dark:text-slate-300 leading-relaxed mb-6">'+e.desc+'</p>'+
       '<p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Sinais e sintomas frequentes</p>'+
@@ -511,6 +520,8 @@ function init(){
     document.documentElement.classList.toggle('dark');
     try{ localStorage.setItem('fp-theme',document.documentElement.classList.contains('dark')?'dark':'light'); }catch(_){}
   });
+
+  window.addEventListener('resize', updateTabsFade);
 
   document.getElementById('tabsBar').addEventListener('click',function(ev){
     var b=ev.target.closest('.tab-btn'); if(!b) return; switchTab(b.getAttribute('data-tab'));
