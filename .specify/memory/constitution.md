@@ -37,11 +37,26 @@ two call sites already need them — not speculatively.
 
 ## Padrões Técnicos
 
-- Stack: HTML5 + Tailwind (CDN) + vanilla JS (ES2017-safe, no transpiler) + Lucide
-  icons (CDN). No npm install / build required to run the app — opening
-  `index.html` in a browser (or serving the folder statically) must always work.
-  Additional CDN scripts (Tailwind, Lucide, Fontsource) MUST come from the
-  currently-approved list in the `<head>`; do not silently swap CDNs.
+- Stack: HTML5 + Tailwind (pre-compiled to `assets/tailwind.css`, no runtime
+  script) + vanilla JS (ES2017-safe, no transpiler) + Lucide icons (SVGs
+  embedded inline in `index.html` as the `ICONS` map, no runtime script). No
+  npm install / build required to *run* the app — opening `index.html` in a
+  browser (or serving the folder statically) must always work offline, on a
+  slow connection, or inside a restrictive in-app browser. A build step
+  (`npx tailwindcss` via `tailwind.config.js`, see the comment atop
+  `assets/tailwind.css`) is only needed when *changing* which Tailwind
+  classes are used in `index.html`.
+- The app's core visual rendering (layout, colors, icons) MUST NOT depend on
+  a third-party `<script>` finishing execution in the visitor's browser —
+  that dependency is what caused a real production regression (Tailwind's
+  Play CDN and Lucide's CDN script silently failing to load/execute in a
+  mobile in-app browser, leaving the page structurally unstyled). Prefer
+  `<link rel="stylesheet">`/embedded data over `<script src>` for anything
+  visual; web fonts (Inter/Manrope, loaded via `<link>`) are the one
+  exception, and MUST always have a system-font fallback in the stack.
+  Additional CDN links (currently: Fontsource Inter, Google Fonts Manrope)
+  MUST come from the currently-approved list in the `<head>`; do not
+  silently swap CDNs.
 - External integrations: NIH Clinical Table Search Service (condition lookup) and
   RxNorm REST (medication verification) are called client-side, are optional
   (the app must remain usable from the local `DB` when offline), and MUST use the
