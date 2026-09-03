@@ -99,7 +99,8 @@ GET https://rxnav.nlm.nih.gov/REST/drugs.json?name={medicamento}
 
 📄 Documentação completa (parâmetros, exemplos de requisição/resposta,
 estratégia de fallback e APIs candidatas para o roadmap) em
-[`docs/API.md`](docs/API.md).
+[`docs/API.md`](docs/API.md) — também disponível como
+[página navegável](https://claude.ai/code/artifact/b288e541-d474-40f1-9b00-ece1e2c4fae7).
 
 **Base de Diretrizes Própria** — conteúdo curado a partir de:
 - ACSM — American College of Sports Medicine
