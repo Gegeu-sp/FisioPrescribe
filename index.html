@@ -15,15 +15,8 @@
 <script>
 try{ if(localStorage.getItem('fp-theme')==='dark') document.documentElement.classList.add('dark'); }catch(_){}
 </script>
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-tailwind.config={darkMode:'class',theme:{extend:{
-colors:{brand:{50:'#eef7ff',100:'#d9edff',200:'#bce0ff',300:'#8ecdff',400:'#59b0ff',500:'#338fff',600:'#1b6ff5',700:'#1459e1',800:'#1748b6',900:'#19408f'},
-mint:{50:'#effef6',100:'#d9ffe9',200:'#b5fbd5',300:'#7bf3b5',400:'#3ce18c',500:'#14c56c',600:'#09a356',700:'#0b8047',800:'#0d653c',900:'#0c5333'}},
-fontFamily:{sans:['Inter','system-ui','sans-serif']}}}}
-</script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.8/index.css">
-<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&display=swap">
 <style>
 *{font-family:'Inter',system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth}
@@ -39,9 +32,10 @@ html{scroll-behavior:smooth}
 .pulse-dot{animation:pulseDot 2s infinite}
 @keyframes pulseDot{0%,100%{opacity:1}50%{opacity:.35}}
 .blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.3;pointer-events:none}
-.card{background:#fff;border:1px solid #e2e8f0;border-radius:1.5rem;transition:transform .3s,box-shadow .3s}
-.card:hover{transform:translateY(-3px);box-shadow:0 18px 36px -14px rgba(0,0,0,.14)}
-.dark .card{background:#0f172a;border-color:#1e293b}
+.card{background:#fff;border:1px solid rgba(15,23,42,.08);border-radius:1.5rem;box-shadow:0 1px 2px rgba(15,23,42,.03),0 10px 24px -18px rgba(15,23,42,.16);transition:transform .3s,box-shadow .3s,border-color .3s}
+.card:hover{transform:translateY(-3px);box-shadow:0 4px 10px rgba(15,23,42,.05),0 26px 44px -20px rgba(15,23,42,.2);border-color:rgba(51,143,255,.3)}
+.dark .card{background:#0f172a;border-color:rgba(148,163,184,.14);box-shadow:0 1px 2px rgba(0,0,0,.3),0 10px 24px -18px rgba(0,0,0,.55)}
+.dark .card:hover{box-shadow:0 4px 10px rgba(0,0,0,.35),0 26px 44px -20px rgba(0,0,0,.65);border-color:rgba(89,176,255,.35)}
 .tab-btn{display:inline-flex;align-items:center;gap:.5rem;padding:.65rem 1rem;border-radius:.8rem;font-weight:600;font-size:.85rem;white-space:nowrap;border:1px solid #e2e8f0;background:#fff;color:#475569;transition:all .25s;cursor:pointer;touch-action:manipulation}
 .tab-btn:hover{border-color:#338fff;color:#1b6ff5}
 .tab-btn:active{transform:scale(.96)}
@@ -76,6 +70,7 @@ input:focus{outline:none}
  .print-area{position:absolute;inset:0;box-shadow:none!important;border:none!important}
 }
 </style>
+<link rel="stylesheet" href="assets/tailwind.css">
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors min-h-screen">
 
@@ -92,7 +87,7 @@ input:focus{outline:none}
         <i data-lucide="activity" class="w-5 h-5 text-white"></i>
       </div>
       <div>
-        <h1 class="font-bold text-lg leading-tight">FisioPrescribe</h1>
+        <h1 class="font-display font-extrabold text-lg leading-tight tracking-tight">FisioPrescribe</h1>
         <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">Patologia → Relatório completo</p>
       </div>
     </div>
@@ -111,7 +106,7 @@ input:focus{outline:none}
   <section class="grid lg:grid-cols-2 gap-10 items-center mb-10 slide-up">
     <div>
       <div class="inline-flex badge b-green mb-4"><i data-lucide="sparkles" class="w-3.5 h-3.5"></i>Para personal trainers e equipes</div>
-      <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight mb-4">Digite a patologia.<br><span class="bg-gradient-to-r from-brand-500 to-mint-500 bg-clip-text text-transparent">Receba o protocolo.</span></h2>
+      <h2 class="font-display text-3xl sm:text-5xl font-extrabold tracking-tight leading-[1.08] mb-4">Digite a patologia.<br><span class="bg-gradient-to-r from-brand-500 to-mint-500 bg-clip-text text-transparent">Receba o protocolo.</span></h2>
       <p class="text-slate-500 dark:text-slate-400 mb-7">O que é, tratamentos possíveis e indicação de exercício físico — com fontes NIH, RxNorm e diretrizes ACSM/OMS.</p>
 
       <div class="relative">
@@ -180,10 +175,58 @@ input:focus{outline:none}
 </main>
 
 <script>
+const ICONS={
+  "activity":'<path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2" />',
+  "alert-circle":'<circle cx="12" cy="12" r="10" /><line x1="12" x2="12" y1="8" y2="12" /><line x1="12" x2="12.01" y1="16" y2="16" />',
+  "alert-triangle":'<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" /><path d="M12 9v4" /><path d="M12 17h.01" />',
+  "book-open":'<path d="M12 7v14" /><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" />',
+  "calendar-check":'<path d="M8 2v4" /><path d="M16 2v4" /><rect width="18" height="18" x="3" y="4" rx="2" /><path d="M3 10h18" /><path d="m9 16 2 2 4-4" />',
+  "check":'<path d="M20 6 9 17l-5-5" />',
+  "circle-dot":'<circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="1" />',
+  "copy":'<rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />',
+  "database":'<ellipse cx="12" cy="5" rx="9" ry="3" /><path d="M3 5V19A9 3 0 0 0 21 19V5" /><path d="M3 12A9 3 0 0 0 21 12" />',
+  "download":'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" x2="12" y1="15" y2="3" />',
+  "dumbbell":'<path d="M14.4 14.4 9.6 9.6" /><path d="M18.657 21.485a2 2 0 1 1-2.829-2.828l-1.767 1.768a2 2 0 1 1-2.829-2.829l6.364-6.364a2 2 0 1 1 2.829 2.829l-1.768 1.767a2 2 0 1 1 2.828 2.829z" /><path d="m21.5 21.5-1.4-1.4" /><path d="M3.9 3.9 2.5 2.5" /><path d="M6.404 12.768a2 2 0 1 1-2.829-2.829l1.768-1.767a2 2 0 1 1-2.828-2.829l2.828-2.828a2 2 0 1 1 2.829 2.828l1.767-1.768a2 2 0 1 1 2.829 2.829z" />',
+  "file-text":'<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4" /><path d="M10 9H8" /><path d="M16 13H8" /><path d="M16 17H8" />',
+  "flower-2":'<path d="M12 5a3 3 0 1 1 3 3m-3-3a3 3 0 1 0-3 3m3-3v1M9 8a3 3 0 1 0 3 3M9 8h1m5 0a3 3 0 1 1-3 3m3-3h-1m-2 3v-1" /><circle cx="12" cy="8" r="2" /><path d="M12 10v12" /><path d="M12 22c4.2 0 7-1.667 7-5-4.2 0-7 1.667-7 5Z" /><path d="M12 22c-4.2 0-7-1.667-7-5 4.2 0 7 1.667 7 5Z" />',
+  "footprints":'<path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z" /><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z" /><path d="M16 17h4" /><path d="M4 13h4" />',
+  "hand":'<path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2" /><path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2" /><path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8" /><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" />',
+  "heart-pulse":'<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27" />',
+  "info":'<circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" />',
+  "leaf":'<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" /><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />',
+  "list-checks":'<path d="m3 17 2 2 4-4" /><path d="m3 7 2 2 4-4" /><path d="M13 6h8" /><path d="M13 12h8" /><path d="M13 18h8" />',
+  "moon":'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />',
+  "move":'<path d="M12 2v20" /><path d="m15 19-3 3-3-3" /><path d="m19 9 3 3-3 3" /><path d="M2 12h20" /><path d="m5 9-3 3 3 3" /><path d="m9 5 3-3 3 3" />',
+  "pill":'<path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z" /><path d="m8.5 8.5 7 7" />',
+  "printer":'<path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6" /><rect x="6" y="14" width="12" height="8" rx="1" />',
+  "rotate-ccw":'<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" />',
+  "search":'<circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />',
+  "shield-alert":'<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /><path d="M12 8v4" /><path d="M12 16h.01" />',
+  "sparkles":'<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" /><path d="M20 3v4" /><path d="M22 5h-4" /><path d="M4 17v2" /><path d="M5 18H3" />',
+  "stethoscope":'<path d="M11 2v2" /><path d="M5 2v2" /><path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1" /><path d="M8 15a6 6 0 0 0 12 0v-3" /><circle cx="20" cy="10" r="2" />',
+  "stretch-horizontal":'<rect width="20" height="6" x="2" y="4" rx="2" /><rect width="20" height="6" x="2" y="14" rx="2" />',
+  "sun":'<circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" />',
+  "timer":'<line x1="10" x2="14" y1="2" y2="2" /><line x1="12" x2="15" y1="14" y2="11" /><circle cx="12" cy="14" r="8" />',
+  "trending-up":'<polyline points="22 7 13.5 15.5 8.5 10.5 2 17" /><polyline points="16 7 22 7 22 13" />',
+  "users":'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />',
+  "waves":'<path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" /><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" /><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" />',
+  "wifi":'<path d="M12 20h.01" /><path d="M2 8.82a15 15 0 0 1 20 0" /><path d="M5 12.859a10 10 0 0 1 14 0" /><path d="M8.5 16.429a5 5 0 0 1 7 0" />',
+  "wind":'<path d="M12.8 19.6A2 2 0 1 0 14 16H2" /><path d="M17.5 8a2.5 2.5 0 1 1 2 4H2" /><path d="M9.8 4.4A2 2 0 1 1 11 8H2" />',
+  "x-circle":'<circle cx="12" cy="12" r="10" /><path d="m15 9-6 6" /><path d="m9 9 6 6" />',
+  "zap":'<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z" />',
+};
 const $=s=>document.querySelector(s);
 const norm=s=>(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 const esc=s=>(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const icons=()=>{ if(window.lucide){ lucide.createIcons(); } };
+function icons(){
+  var els=document.querySelectorAll('i[data-lucide]');
+  for(var i=0;i<els.length;i++){
+    var el=els[i], name=el.getAttribute('data-lucide'), inner=ICONS[name];
+    if(!inner) continue;
+    var cls=el.getAttribute('class')||'';
+    el.outerHTML='<svg class="'+cls+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+inner+'</svg>';
+  }
+}
 const fT=(url,ms)=>Promise.race([fetch(url),new Promise((res,rej)=>setTimeout(()=>rej(new Error('timeout')),ms||6000))]);
 let ATUAL=null;
 function findLocal(q){
@@ -327,7 +370,7 @@ function renderMeds(e){
   document.getElementById('tab-tratamento').innerHTML=
   '<div class="card p-6 mb-5 flex items-center gap-3">'+
     '<div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950/50 flex items-center justify-center"><i data-lucide="pill" class="w-5 h-5 text-purple-600 dark:text-purple-400"></i></div>'+
-    '<div><h3 class="font-bold text-lg">Tratamento possível</h3><p class="text-xs text-slate-500 dark:text-slate-400">Abordagens não farmacológicas + medicamentos comuns (RxNorm/NLM)</p></div>'+
+    '<div><h3 class="font-display font-bold text-lg">Tratamento possível</h3><p class="text-xs text-slate-500 dark:text-slate-400">Abordagens não farmacológicas + medicamentos comuns (RxNorm/NLM)</p></div>'+
   '</div>'+
   '<div class="grid lg:grid-cols-3 gap-5 mb-5">'+
     '<div class="card p-6"><p class="font-bold mb-3 flex items-center gap-2"><i data-lucide="leaf" class="w-5 h-5 text-mint-500"></i>Abordagens não farmacológicas</p><ul class="space-y-2">'+tgHtml+'</ul></div>'+
@@ -357,10 +400,10 @@ function renderExer(e){
     '<div class="card p-6"><i data-lucide="zap" class="w-7 h-7 mb-3 text-brand-500"></i><p class="text-2xl font-extrabold">'+e.proto.int+'</p><p class="text-sm text-slate-500 dark:text-slate-400">Intensidade</p></div>'+
     '<div class="card p-6"><i data-lucide="calendar-check" class="w-7 h-7 mb-3 text-purple-500"></i><p class="text-2xl font-extrabold">'+e.proto.freq+'</p><p class="text-sm text-slate-500 dark:text-slate-400">Frequência</p></div>'+
   '</div>'+
-  '<h4 class="font-bold text-lg mb-4 flex items-center gap-2"><i data-lucide="list-checks" class="w-5 h-5 text-mint-500"></i>Protocolo indicado</h4>'+
+  '<h4 class="font-display font-bold text-lg mb-4 flex items-center gap-2"><i data-lucide="list-checks" class="w-5 h-5 text-mint-500"></i>Protocolo indicado</h4>'+
   '<div class="grid md:grid-cols-2 gap-4 mb-6">'+exerHtml+'</div>'+
   '<div class="rounded-3xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 p-6">'+
-    '<h4 class="font-bold text-red-700 dark:text-red-400 mb-3 flex items-center gap-2"><i data-lucide="shield-alert" class="w-5 h-5"></i>Contraindicações e precauções</h4>'+
+    '<h4 class="font-display font-bold text-red-700 dark:text-red-400 mb-3 flex items-center gap-2"><i data-lucide="shield-alert" class="w-5 h-5"></i>Contraindicações e precauções</h4>'+
     '<ul class="space-y-2">'+contraHtml+'</ul>'+
   '</div>';
 }
@@ -384,7 +427,7 @@ function renderReport(e){
   '<div class="print-area card p-8 sm:p-10">'+
     '<div class="flex items-center justify-between pb-6 border-b border-slate-200 dark:border-slate-800 mb-6">'+
       '<div class="flex items-center gap-3"><div class="w-11 h-11 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center"><i data-lucide="activity" class="w-6 h-6 text-white"></i></div>'+
-      '<div><p class="font-bold">FisioPrescribe</p><p class="text-xs text-slate-500">Relatório técnico de orientação</p></div></div>'+
+      '<div><p class="font-display font-extrabold">FisioPrescribe</p><p class="text-xs text-slate-500">Relatório técnico de orientação</p></div></div>'+
       '<p class="text-xs text-slate-400">'+data+'</p>'+
     '</div>'+
     '<div class="space-y-6 text-sm leading-relaxed">'+
@@ -481,7 +524,7 @@ function renderOquee(e,ehGeneric){
     '<div class="lg:col-span-2 card p-7">'+
       '<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">'+
         '<div><p class="text-xs font-semibold uppercase tracking-wider text-brand-500 mb-1">Descrição clínica</p>'+
-        '<h3 class="text-2xl font-bold">'+e.nome+'</h3></div>'+
+        '<h3 class="font-display text-2xl font-extrabold tracking-tight">'+e.nome+'</h3></div>'+
         '<div class="flex flex-row sm:flex-col flex-wrap items-start sm:items-end gap-1.5"><span class="badge b-blue font-mono">CID-10 '+e.cid+'</span>'+fonteBadge+'</div>'+
       '</div>'+
       '<p class="text-slate-600 dark:text-slate-300 leading-relaxed mb-6">'+e.desc+'</p>'+

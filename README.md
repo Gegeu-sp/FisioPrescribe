@@ -14,6 +14,8 @@ possível e indicação de exercício físico baseada em evidências.
 [![Plataforma](https://img.shields.io/badge/plataforma-web-19408f)](#)
 [![Spec--Driven](https://img.shields.io/badge/spec--driven-Spec%20Kit-8ecdff)](#-desenvolvimento-orientado-por-especificação-spec-kit)
 
+### 🌐 [Acessar o FisioPrescribe](https://gegeu-sp.github.io/FisioPrescribe/)
+
 </div>
 
 ---
@@ -71,13 +73,22 @@ médica.
 | Camada | Tecnologia |
 |---|---|
 | Estrutura | HTML5 semântico |
-| Estilos | Tailwind CSS (CDN) + CSS customizado |
+| Estilos | Tailwind CSS pré-compilado (`assets/tailwind.css`, sem script em runtime) + CSS customizado |
 | Interatividade | JavaScript Vanilla (ES6+, sem frameworks) |
-| Ícones | Lucide Icons |
-| Fonte | Inter (via Fontsource) |
+| Ícones | SVGs do Lucide embutidos no próprio `index.html` (sem CDN em runtime) |
+| Fontes | Inter (corpo) e Manrope (títulos), via `<link>` |
 | Impressão | `@media print` nativo |
 
-Nenhuma dependência de build. Basta abrir o `index.html` no navegador.
+**Zero dependência de runtime**: nada no visual do app depende de um script
+externo terminar de carregar/executar no seu navegador — `assets/tailwind.css`
+e os ícones já vêm prontos no arquivo. Isso evita telas quebradas em redes
+lentas, bloqueadores de conteúdo ou navegadores embutidos (ex.: WhatsApp)
+que restringem scripts de terceiros. Só as fontes web (Inter/Manrope) usam
+`<link>` externo, com fallback gracioso para fontes do sistema.
+
+Nenhuma dependência de build para *usar* o app — basta abrir o `index.html`
+no navegador. Build é necessário só se você alterar as classes Tailwind
+usadas no HTML (veja o comentário no topo de `assets/tailwind.css`).
 
 ## 🔌 APIs Utilizadas
 
@@ -108,6 +119,12 @@ estratégia de fallback e APIs candidatas para o roadmap) em
 - PCDT — Protocolos Clínicos do Ministério da Saúde
 
 ## 🚀 Como Usar
+
+A forma mais rápida é acessar a versão publicada:
+**[gegeu-sp.github.io/FisioPrescribe](https://gegeu-sp.github.io/FisioPrescribe/)**
+(atualizada automaticamente a cada push em `main`, via GitHub Actions).
+
+Para rodar localmente:
 
 **Opção 1 — Direto no navegador**
 ```bash
@@ -177,7 +194,11 @@ FisioPrescribe/
 ├── index.html            # aplicação completa (markup + estilos + lógica)
 ├── assets/
 │   ├── icon.svg            # ícone do projeto (fonte vetorial)
-│   └── icon-512.png        # ícone renderizado (favicon / preview social)
+│   ├── icon-512.png        # ícone renderizado (favicon / preview social)
+│   └── tailwind.css        # Tailwind pré-compilado (ver comentário no topo do arquivo)
+├── tailwind.config.js      # tema (cores brand/mint, fontes) usado para gerar tailwind.css
+├── docs/
+│   └── API.md               # documentação das APIs (NIH, RxNorm, timeouts, roadmap)
 ├── .specify/               # Spec Kit — templates e memória do projeto
 ├── .claude/skills/          # skills do Spec Kit para o Claude Code
 ├── LICENSE                 # MIT
