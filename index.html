@@ -4,6 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FisioPrescribe — Patologia → Relatório de Exercício</title>
+<meta name="description" content="Digite a patologia e receba o protocolo: o que é, tratamentos possíveis e indicação de exercício físico, com fontes NIH, RxNorm e diretrizes ACSM/OMS. Feito para personal trainers e equipes.">
+<meta name="theme-color" content="#1b6ff5">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icon-512.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="FisioPrescribe — Patologia → Relatório de Exercício">
+<meta property="og:description" content="O que é, tratamentos possíveis e indicação de exercício físico — com fontes NIH, RxNorm e diretrizes ACSM/OMS.">
+<meta property="og:image" content="assets/icon-512.png">
+<script>
+try{ if(localStorage.getItem('fp-theme')==='dark') document.documentElement.classList.add('dark'); }catch(_){}
+</script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
 tailwind.config={darkMode:'class',theme:{extend:{
@@ -168,6 +179,7 @@ input:focus{outline:none}
 <script>
 const $=s=>document.querySelector(s);
 const norm=s=>(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+const esc=s=>(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const icons=()=>{ if(window.lucide){ lucide.createIcons(); } };
 const fT=(url,ms)=>Promise.race([fetch(url),new Promise((res,rej)=>setTimeout(()=>rej(new Error('timeout')),ms||6000))]);
 let ATUAL=null;
@@ -201,7 +213,8 @@ function showErr(){
   document.getElementById('loading').classList.add('hidden');
   document.getElementById('errorBox').classList.remove('hidden');
 }
-function generic(nome){
+function generic(nomeRaw){
+  var nome=esc(nomeRaw);
   return {keys:[],nome:nome,cid:'—',prev:'Consultar dados epidemiológicos locais',risco:60,rLabel:'Não classificado',rCor:'#f59e0b',
   rNota:'Condição fora da base detalhada. Exija liberação médica antes de prescrever.',
   desc:'"'+nome+'" foi identificada na base NIH Clinical Table Search Service, mas não possui protocolo detalhado nesta plataforma. Solicite avaliação e liberação médica do cliente e utilize as diretrizes gerais da OMS abaixo como referência conservadora.',
@@ -349,11 +362,15 @@ function renderExer(e){
   '</div>';
 }
 
-function renderReport(e){
+function reportParts(e){
   var medsListTxt='',exerListTxt='',contraTxt='';
   for(var i=0;i<e.meds.length;i++){ medsListTxt+=(medsListTxt?'\n':'')+'- '+e.meds[i].n+' ('+e.meds[i].c+'): '+e.meds[i].e; }
   for(var k=0;k<e.exer.length;k++){ var x=e.exer[k]; exerListTxt+=(exerListTxt?'\n':'')+'- '+x.t+': '+x.f+', '+x.d+', '+x.in+'. '+x.n; }
   for(var j=0;j<e.contra.length;j++){ contraTxt+=(contraTxt?'\n':'')+'- '+e.contra[j]; }
+  return {medsListTxt:medsListTxt,exerListTxt:exerListTxt,contraTxt:contraTxt};
+}
+function renderReport(e){
+  var parts=reportParts(e), medsListTxt=parts.medsListTxt, exerListTxt=parts.exerListTxt, contraTxt=parts.contraTxt;
   var data=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
   document.getElementById('tab-relatorio').innerHTML=
   '<div class="flex flex-wrap gap-3 mb-6">'+
@@ -390,10 +407,7 @@ function renderReport(e){
 }
 function reportText(){
   var e=ATUAL; if(!e) return '';
-  var medsListTxt='',exerListTxt='',contraTxt='';
-  for(var i=0;i<e.meds.length;i++){ medsListTxt+=(medsListTxt?'\n':'')+'- '+e.meds[i].n+' ('+e.meds[i].c+'): '+e.meds[i].e; }
-  for(var k=0;k<e.exer.length;k++){ var x=e.exer[k]; exerListTxt+=(exerListTxt?'\n':'')+'- '+x.t+': '+x.f+', '+x.d+', '+x.in+'. '+x.n; }
-  for(var j=0;j<e.contra.length;j++){ contraTxt+=(contraTxt?'\n':'')+'- '+e.contra[j]; }
+  var parts=reportParts(e), medsListTxt=parts.medsListTxt, exerListTxt=parts.exerListTxt, contraTxt=parts.contraTxt;
   return 'FISIOPRESCRIBE — RELATÓRIO TÉCNICO\n'+
   'Data: '+new Date().toLocaleDateString('pt-BR')+'\n\n'+
   '1) PATOLOGIA: '+e.nome+' (CID-10 '+e.cid+')\n'+e.desc+'\nSinais frequentes: '+e.sint.join('; ')+'.\n\n'+
@@ -491,7 +505,6 @@ function init(){
     document.documentElement.classList.toggle('dark');
     try{ localStorage.setItem('fp-theme',document.documentElement.classList.contains('dark')?'dark':'light'); }catch(_){}
   });
-  try{ if(localStorage.getItem('fp-theme')==='dark') document.documentElement.classList.add('dark'); }catch(_){}
 
   document.getElementById('tabsBar').addEventListener('click',function(ev){
     var b=ev.target.closest('.tab-btn'); if(!b) return; switchTab(b.getAttribute('data-tab'));
