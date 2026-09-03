@@ -14,6 +14,8 @@ possível e indicação de exercício físico baseada em evidências.
 [![Plataforma](https://img.shields.io/badge/plataforma-web-19408f)](#)
 [![Spec--Driven](https://img.shields.io/badge/spec--driven-Spec%20Kit-8ecdff)](#-desenvolvimento-orientado-por-especificação-spec-kit)
 
+### 🌐 [Acessar o FisioPrescribe](https://gegeu-sp.github.io/FisioPrescribe/)
+
 </div>
 
 ---
@@ -117,6 +119,12 @@ estratégia de fallback e APIs candidatas para o roadmap) em
 - PCDT — Protocolos Clínicos do Ministério da Saúde
 
 ## 🚀 Como Usar
+
+A forma mais rápida é acessar a versão publicada:
+**[gegeu-sp.github.io/FisioPrescribe](https://gegeu-sp.github.io/FisioPrescribe/)**
+(atualizada automaticamente a cada push em `main`, via GitHub Actions).
+
+Para rodar localmente:
 
 **Opção 1 — Direto no navegador**
 ```bash
