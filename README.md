@@ -97,6 +97,10 @@ relatório (timeout de 5s).
 GET https://rxnav.nlm.nih.gov/REST/drugs.json?name={medicamento}
 ```
 
+📄 Documentação completa (parâmetros, exemplos de requisição/resposta,
+estratégia de fallback e APIs candidatas para o roadmap) em
+[`docs/API.md`](docs/API.md).
+
 **Base de Diretrizes Própria** — conteúdo curado a partir de:
 - ACSM — American College of Sports Medicine
 - OMS 2020 — Diretrizes de Atividade Física
